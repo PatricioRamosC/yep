@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'apis' => [
+        'login_manager_url' => env('URL_TOKEN_VALIDATION'),
+    ],
+
 ];

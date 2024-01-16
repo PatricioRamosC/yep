@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+use App\Http\Controllers\MenuItemController;
+use App\Http\Controllers\PistoleoController;
+
+Route::group(['prefix' => 'v1/', 'middleware' => 'tokenAutentication'], function () {
+    // Rutas CRUD para MenuItems
+    Route::resource('/menu-items', MenuItemController::class);
+
+    // Rutas para el Pistoleo
+    Route::get('/pistoleos', [PistoleoController::class, 'index']);
+    Route::post('/pistoleos', [PistoleoController::class, 'store']);
+    Route::get('/pistoleos/{etiqueta}', [PistoleoController::class, 'show']);
+    Route::put('/pistoleos/{id}', [PistoleoController::class, 'update']);
+    Route::delete('/pistoleos/{id}', [PistoleoController::class, 'destroy']);
+
 });
