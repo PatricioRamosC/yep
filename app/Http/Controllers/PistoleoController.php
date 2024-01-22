@@ -31,7 +31,6 @@ class PistoleoController extends Controller
     public function store(Request $request)
     {
         try {
-            Log::info($request->only(['id_usuario', 'etiqueta', 'barcode', 'quantity', 'etapa']));
             $request->validate([
                 'id_usuario'    => 'required|numeric',
                 'etiqueta'      => 'required',
@@ -41,17 +40,16 @@ class PistoleoController extends Controller
             ]);
         } catch(Throwable $e) {
             return $this->setResponseErr($e,
-            Response::HTTP_BAD_REQUEST
-            // ErrorCodes::VALIDATION_ERROR
-        );
+                Response::HTTP_BAD_REQUEST
+                // ErrorCodes::VALIDATION_ERROR
+            );
         }
         try {
             $etiqueta = Pistoleo::create(
-                    $request->only(['id_usuario', 'etiqueta', 'barcode', 'quantity', 'etapa'])
-                );
-            Log::info($etiqueta);
-            $detalle = Pistoleo::where('id_usuario', $etiqueta->id_usuario)->get();
-            return $this->responseOK($detalle, Response::HTTP_CREATED);
+                $request->only(['id_usuario', 'etiqueta', 'barcode', 'quantity', 'etapa'])
+            );
+            Log::info("Registro creado.");
+            return $this->show($etiqueta->id_usuario, $etiqueta->etapa);
         } catch(Throwable $e) {
             return $this->setResponseErr($e, ErrorCodes::CREATE_ERROR);
         }
@@ -60,12 +58,14 @@ class PistoleoController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($etiqueta)
+    public function show($userId, $etapa)
     {
         try {
-            $detalle = Pistoleo::where('etiqueta', $etiqueta)->get();
-            $region = Pistoleo::findOrFail($detalle);
-            return $this->responseOK($region);
+            $detalle = Pistoleo::where('id_usuario', $userId)
+                ->where('etapa', $etapa)
+                ->get();
+            Log::info("Retornando registros. [" . $userId . "] [" . $etapa . "]");
+            return $this->responseOK($detalle);
         } catch (ModelNotFoundException $e) {
             return $this->setResponseErr($e, Response::HTTP_NO_CONTENT);
         } catch (Throwable $e) {
@@ -89,9 +89,10 @@ class PistoleoController extends Controller
             return $this->setResponseErr($e, ErrorCodes::VALIDATION_ERROR);
         }
         try {
-            $region = Pistoleo::findOrFail($id);
-            $region->update($request->all());
-            return $this->responseOK($region);
+            $pistoleo = Pistoleo::findOrFail($id);
+            $pistoleo->update($request->all());
+            Log::info("Actualizando registro.");
+            return $this->show($pistoleo->id_usuario, $pistoleo->etapa);
         } catch (Throwable $e) {
             return $this->setResponseErr($e, ErrorCodes::UPDATE_ERROR);
         }
@@ -103,9 +104,10 @@ class PistoleoController extends Controller
     public function destroy($id)
     {
         try {
-            $region = Pistoleo::findOrFail($id);
-            $region->delete();
-            return $this->responseOK($region);
+            $pistoleo = Pistoleo::findOrFail($id);
+            $pistoleo->delete();
+            Log::info("Borrando registro.");
+            return $this->show($pistoleo->id_usuario, $pistoleo->etapa);
         } catch (ModelNotFoundException $e) {
             return $this->setResponseErr($e, Response::HTTP_NO_CONTENT);
         } catch(Throwable $e) {

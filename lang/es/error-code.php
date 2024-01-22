@@ -11,4 +11,7 @@ return [
     'E006' => 'Error al momento de actualizar.',
 
     '204'  => 'Información no encontrada.',
+
+    'E201' => 'Etiqueta tiene un estado que no permite realizar la operación.',
+
 ];

@@ -19,4 +19,6 @@ class ErrorCodes
     // Otros errores generales
     const NOT_FOUND = 'E201';
     const INTERNAL_ERROR = 'E202';
+
+    const ETIQUETA_ESTADO_ERRONEO = 'E301';
 }
