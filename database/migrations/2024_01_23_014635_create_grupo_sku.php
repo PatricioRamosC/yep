@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grupo_pedidos', function (Blueprint $table) {
+        Schema::create('grupo_sku', function (Blueprint $table) {
             $table->id();
-            $table->string('descripcion');
-            $table->string('etapa');
-            $table->unsignedBigInteger('id_usuario');
+            $table->unsignedBigInteger('id_grupo');
+            $table->string('sku');
+            $table->double('cantidad');
             $table->timestamps();
+
+            $table->foreign('id_grupo')->on('grupo_pedidos')->references('id');
         });
     }
 
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grupo_pedidos');
+        Schema::dropIfExists('grupo_sku');
     }
 };

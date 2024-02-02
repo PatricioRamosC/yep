@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Constants;
 use Throwable;
 use App\Models\GrupoPedido;
 use App\Models\Pedido;
+use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Models\Pistoleo;
 use Symfony\Component\HttpFoundation\Response;
 use App\Constants\ErrorCodes;
+use Brick\Math\BigInteger;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class EtiquetaController extends Controller
@@ -86,6 +88,7 @@ class EtiquetaController extends Controller
                 Log::info('Creando grupo de pedido');
                 $grupo = GrupoPedido::create(
                     [
+                        'foto'          => '',
                         'etapa'         => $request['etapa'],
                         'id_usuario'    => $request['id_usuario'],
                     ]
@@ -177,6 +180,108 @@ class EtiquetaController extends Controller
             return $this->show($pedido->id_usuario, $pedido->etapa);
         } catch (ModelNotFoundException $e) {
             return $this->setResponseErr($e, Response::HTTP_NO_CONTENT);
+        } catch (Throwable $e) {
+            return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
+        }
+    }
+
+    public function listarEtiquetas(int $grupoId) {
+        try {
+            Log::info("Listando tracking del grupo [$grupoId]");
+            $tracking = Order::with('product')
+                    ->where('Orders_group_id', $grupoId)
+                    ->get();
+            return $this->responseOK($tracking);
+        } catch (ModelNotFoundException $e) {
+            return $this->setResponseErr($e, Response::HTTP_NO_CONTENT);
+        } catch (Throwable $e) {
+            return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
+        }
+    }
+
+    /**
+     * Consulta si la etiqueta pertenece al grupo.
+     */
+    public function validarEtiqueta(int $grupoId, int $etiqueta) {
+        try {
+            Log::info("Validando etiqueta $etiqueta para el grupo [$grupoId]");
+            $etiqueta = Order::with('product')
+                    ->where('Tracking_code', $etiqueta)
+                    ->firstOrFail();
+            if ($etiqueta->Orders_group_id != $grupoId) {
+                return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_OTHER_GROUP, Response::HTTP_PRECONDITION_FAILED);
+            }
+            return $this->responseOK($etiqueta);
+        } catch (ModelNotFoundException $e) {
+            return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_NOT_FOUND, Response::HTTP_PRECONDITION_FAILED);
+        } catch (Throwable $e) {
+            return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
+        }
+    }
+
+    public function despacharEtiqueta(Request $request) {
+        try {
+            $request->validate([
+                'Product_quantity'  => 'required|numeric',
+                'Tracking_code'     => 'required',
+                'SKU_id'            => 'required',
+                'Orders_group_id'   => 'required|numeric',
+            ]);
+        } catch(Throwable $e) {
+            Log::error("Falla en la validación al despachar etiqueta.");
+            return $this->setResponseErr($e, Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $tracking = $request->all();
+            Log::info("Despachando etiqueta " . json_encode($tracking));
+            $tracking['Order_state'] = Constants::DESPACHADO;
+            $etiqueta = Order::where('Tracking_code', $request['Tracking_code'])
+                    ->firstOrFail();
+            if ($etiqueta->Orders_group_id != $request['Orders_group_id']) {
+                return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_OTHER_GROUP, Response::HTTP_PRECONDITION_FAILED);
+            }
+            if ($etiqueta->Product_quantity != $request['Product_quantity']) {
+                return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_QUANTITY_DIFFERS, Response::HTTP_PRECONDITION_FAILED);
+            }
+            $etiqueta->update($tracking);
+            return $this->setResponse($etiqueta, trans(ErrorCodes::ETIQUETA_DESPACHADA_OK));
+        } catch (ModelNotFoundException $e) {
+            return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_NOT_FOUND, Response::HTTP_PRECONDITION_FAILED);
+        } catch (Throwable $e) {
+            return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
+        }
+    }
+
+    public function entregarEtiqueta(Request $request) {
+        try {
+            $request->validate([
+                'Product_quantity'  => 'required|numeric',
+                'Tracking_code'     => 'required',
+                'SKU_id'            => 'required',
+                'Orders_group_id'   => 'required|numeric',
+            ]);
+        } catch(Throwable $e) {
+            Log::error("Falla en la validación al entregar etiqueta.");
+            return $this->setResponseErr($e, Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $tracking = $request->all();
+            Log::info("Etiqueta a entregar " . json_encode($tracking));
+            $tracking['Order_state'] = Constants::ENTREGADO;
+            $etiqueta = Order::where('Tracking_code', $request['Tracking_code'])
+                    ->firstOrFail();
+            if ($etiqueta->Orders_group_id != $request['Orders_group_id']) {
+                return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_OTHER_GROUP, Response::HTTP_PRECONDITION_FAILED);
+            }
+            if ($etiqueta->Product_quantity != $request['Product_quantity']) {
+                return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_QUANTITY_DIFFERS, Response::HTTP_PRECONDITION_FAILED);
+            }
+            $etiqueta->update($tracking);
+            return $this->setResponse($etiqueta, trans(ErrorCodes::ETIQUETA_ENTREGADA_OK));
+        } catch (ModelNotFoundException $e) {
+            return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_NOT_FOUND, Response::HTTP_PRECONDITION_FAILED);
         } catch (Throwable $e) {
             return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
         }

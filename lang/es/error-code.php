@@ -13,5 +13,9 @@ return [
     '204'  => 'Información no encontrada.',
 
     'E201' => 'Etiqueta tiene un estado que no permite realizar la operación.',
+    'E202' => 'Código ingresado inexistente.',
+    'E203' => 'Etiqueta no pertenece al grupo seleccionado.',
+    'E204' => 'Cantidad ingresada difiere a la registrada para este Tracking Code.',
+    'E205' => 'Etiqueta ha sido cambiada a \'Despachado\'.',
 
 ];

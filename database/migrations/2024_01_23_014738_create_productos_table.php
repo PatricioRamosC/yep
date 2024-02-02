@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('grupo_pedidos', function (Blueprint $table) {
+        Schema::create('productos', function (Blueprint $table) {
             $table->id();
+            $table->string('sku');
             $table->string('descripcion');
-            $table->string('etapa');
-            $table->unsignedBigInteger('id_usuario');
+            $table->string('barcode');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('grupo_pedidos');
+        Schema::dropIfExists('productos');
     }
 };

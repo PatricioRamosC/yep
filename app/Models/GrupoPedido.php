@@ -13,6 +13,7 @@ class GrupoPedido extends Model
 
     protected $fillable = [
         'id',
+        'descripcion',
         'etapa',
         'id_usuario',
         'created_at',

@@ -18,6 +18,7 @@ class Controller extends BaseController
             'error_code'    => $error_code,
             'message'       => $message
         ];
+        Log::info(json_encode($responseData));
         if ($payload != null) {
             $responseData['payload'] = $payload;
         }
@@ -28,21 +29,20 @@ class Controller extends BaseController
         return $this->setResponse($payload, "OK", 0, $errCode);
     }
 
-    public function setResponseErr(Throwable $ex, $errCode = Response::HTTP_INTERNAL_SERVER_ERROR) {
+    public function setResponseErr(Throwable $ex, $codeMessage, $errCode = Response::HTTP_INTERNAL_SERVER_ERROR) {
         Log::error("Controller : " . request()->route()->getAction('controller'));
-        Log::error($errCode . " : " . $ex->getMessage());
+        Log::error($codeMessage . " : " . $ex->getMessage());
         $responseData = [
-            'error_code'    => $errCode,
-            'message'       => trans('error-code.' . $errCode)
+            'error_code'    => $codeMessage,
+            'message'       => trans('error-code.' . $codeMessage)
         ];
-        // Log::error($responseData);
         return response()->json($responseData, $errCode);
     }
 
-    public function setResponseErrBusiness($errCode = Response::HTTP_INTERNAL_SERVER_ERROR) {
+    public function setResponseErrBusiness($codeMessage, $errCode = Response::HTTP_INTERNAL_SERVER_ERROR) {
         $responseData = [
-            'error_code'    => $errCode,
-            'message'       => trans('error-code.' . $errCode)
+            'error_code'    => $codeMessage,
+            'message'       => trans("error-code.$codeMessage")
         ];
         return response()->json($responseData, $errCode);
     }

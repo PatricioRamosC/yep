@@ -20,5 +20,12 @@ class ErrorCodes
     const NOT_FOUND = 'E201';
     const INTERNAL_ERROR = 'E202';
 
+    const ETIQUETA_NOT_FOUND        = 'E202';
+    const ETIQUETA_OTHER_GROUP      = 'E203';
+    const ETIQUETA_QUANTITY_DIFFERS = 'E204';
+    const ETIQUETA_DESPACHADA_OK    = 'error-code.E205';
+    const ETIQUETA_ENTREGADA_OK    = 'error-code.E206';
+
     const ETIQUETA_ESTADO_ERRONEO = 'E301';
+
 }
