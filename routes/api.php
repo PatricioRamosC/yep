@@ -43,7 +43,7 @@ Route::group(['prefix' => 'v1/', 'middleware' => 'tokenAutentication'], function
     Route::get('/etiquetas/validar-etiqueta/{grupoId}/{barcode}', [EtiquetaController::class, 'validarEtiqueta']);
     Route::get('/etiquetas/{userId}/{etapa}', [EtiquetaController::class, 'show']);
     Route::put('/etiquetas/despachar', [EtiquetaController::class, 'despacharEtiqueta']);
-    Route::put('/etiquetas/entregar', [EtiquetaController::class, 'entregarEtiqueta']);
+    Route::post('/etiquetas/entregar', [EtiquetaController::class, 'entregarEtiqueta']);
 
     Route::post('/despacho', [DespachoController::class, 'store']);
 

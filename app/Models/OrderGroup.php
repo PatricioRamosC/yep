@@ -11,6 +11,7 @@ class OrderGroup extends Model
 
     protected $table = 'Sales_Orders_orders_group';
     protected $fillable = ['Dipatcher_name', 'Dipatcher_rut', 'created_date', 'Group_courier_id', 'Group_marketplace_id', 'created_by_id'];
+    public $timestamps = false;
 
     public function courier()
     {
