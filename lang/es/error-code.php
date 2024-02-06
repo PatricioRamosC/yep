@@ -17,5 +17,6 @@ return [
     'E203' => 'Etiqueta no pertenece al grupo seleccionado.',
     'E204' => 'Cantidad ingresada difiere a la registrada para este Tracking Code.',
     'E205' => 'Etiqueta ha sido cambiada a \'Despachado\'.',
+    'E206' => 'Etiqueta ha sido cambiada a \'Entregado\'.',
 
 ];

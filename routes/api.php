@@ -35,6 +35,8 @@ Route::group(['prefix' => 'v1/', 'middleware' => 'tokenAutentication'], function
     Route::delete('/pistoleos/{id}', [PistoleoController::class, 'destroy']);
 
     Route::get('/etiquetas', [EtiquetaController::class, 'index']);
+    Route::get('/etiquetas/validar-tracking-code/{etiqueta}', [EtiquetaController::class, 'validarTrackingCode']);
+
     Route::get('/etiquetas/grupos-despacho', [EtiquetaController::class, 'listarGruposDespachado']);
     Route::post('/etiquetas', [EtiquetaController::class, 'store']);
     // Route::put('/etiquetas/{id}', [EtiquetaController::class, 'update']);

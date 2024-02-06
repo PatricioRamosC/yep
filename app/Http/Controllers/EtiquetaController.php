@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Constants\ErrorCodes;
+use App\Models\Courier;
 use App\Models\OrderGroup;
 use Brick\Math\BigInteger;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -255,25 +256,18 @@ class EtiquetaController extends Controller
     }
 
     public function entregarEtiqueta(Request $request) {
-
         $data = $request->all();
-
-        Log::debug(json_encode($data));
         Log::debug($data);
-        // Log::debug(json_encode($request));
 
         try {
+            if ($request->hasFile('imagenes')) {
+                return $this->setResponseErrBusiness(ErrorCodes::VALIDATION_ERROR, Response::HTTP_BAD_REQUEST);
+            }
             $imagenes = $request->file('imagenes');
             foreach ($imagenes as $imagen) {
                 $rutaImagen = $imagen->store('public');
                 Log::debug($rutaImagen);
             }
-            // $request->validate([
-            //     'Product_quantity'  => 'required|numeric',
-            //     'Tracking_code'     => 'required',
-            //     'SKU_id'            => 'required',
-            //     'Orders_group_id'   => 'required|numeric',
-            // ]);
         } catch(Throwable $e) {
             Log::error("Falla en la validación al entregar etiqueta.");
             return $this->setResponseErr($e, Response::HTTP_BAD_REQUEST);
@@ -283,8 +277,7 @@ class EtiquetaController extends Controller
             Log::info('Actualizando los Tracking Code...');
             $etiquetasString = str_replace(['(', ')', ' '], '', $data['etiquetas']);
             $etiquetas = explode(',', $etiquetasString);
-
-            // Log::info(json_decode($data['etiquetas']));
+            $courier = Courier::findOrFail($data['courier_id']);
             foreach($etiquetas as $trackingCode) {
                 Log::info("Actualizando Tracking Code $trackingCode...");
                 $etiqueta = Order::where('Tracking_code', $trackingCode)
@@ -298,10 +291,24 @@ class EtiquetaController extends Controller
             $order = OrderGroup::findOrFail($data['grupo']);
             $order['Dipatcher_name'] = $data['dispatcher_name'];
             $order['Dipatcher_rut'] = $data['dispatcher_rut'];
-            $order['Group_courier_id'] = $data['courier_id'];
+            $order['Group_courier_id'] = $courier->Courier_name;
             $order->update();
 
             return $this->setResponse(null, trans(ErrorCodes::ETIQUETA_ENTREGADA_OK));
+        } catch (ModelNotFoundException $e) {
+            return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_NOT_FOUND, Response::HTTP_PRECONDITION_FAILED);
+        } catch (Throwable $e) {
+            return $this->setResponseErr($e, ErrorCodes::SHOW_ERROR);
+        }
+    }
+
+    public function validarTrackingCode($etiqueta) {
+        try {
+            Log::info("Validando etiqueta $etiqueta...");
+            $etiqueta = Order::with('product')
+                    ->where('Tracking_code', $etiqueta)
+                    ->firstOrFail();
+            return $this->responseOK($etiqueta);
         } catch (ModelNotFoundException $e) {
             return $this->setResponseErrBusiness(ErrorCodes::ETIQUETA_NOT_FOUND, Response::HTTP_PRECONDITION_FAILED);
         } catch (Throwable $e) {
